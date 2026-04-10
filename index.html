@@ -135,12 +135,22 @@
             color: #FF9900;
         }
         
-        .debug-info {
-            font-size: 10px;
-            color: #999;
-            text-align: center;
-            margin-top: 10px;
-            word-break: break-all;
+        .row-2cols {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .row-2cols .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        @media (max-width: 500px) {
+            .row-2cols {
+                flex-direction: column;
+                gap: 20px;
+            }
         }
     </style>
 </head>
@@ -152,9 +162,20 @@
         </div>
         
         <form id="formationForm">
-            <div class="form-group">
-                <label>👤 Votre LOGIN (identifiant Amazon)</label>
-                <input type="text" id="login" placeholder="Ex: JOHN.DOE" required autocomplete="off">
+            <div class="row-2cols">
+                <div class="form-group">
+                    <label>👤 Login Amazon</label>
+                    <input type="text" id="login" placeholder="Ex: JOHN.DOE" required autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label>🏷️ Équipe</label>
+                    <select id="equipe" required>
+                        <option value="">-- Choisissez --</option>
+                        <option value="Équipe O2">Équipe A</option>
+                        <option value="Équipe I2">Équipe B</option>
+                    </select>
+                </div>
             </div>
             
             <div class="form-group">
@@ -193,60 +214,53 @@
             <span class="badge">📱 Scan & Go</span>
             <span class="badge">☁️ Envoi vers Google Sheets</span>
         </div>
-        <div class="debug-info" id="debugInfo"></div>
     </div>
 
     <script>
-        // ⚠️ REMPLACE CETTE URL PAR LA TIENNE ⚠️
+        // ⚠️ REMPLACE PAR TON URL GOOGLE SCRIPT ⚠️
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCejVQFADGIC0uE2qNd73Qtp6_uuzFftXTLNKuvMozi_prjRa66NahKikZWKszrzM7/exec";
-        
         
         document.getElementById('formationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const login = document.getElementById('login').value.trim();
+            const equipe = document.getElementById('equipe').value;
             const process = document.getElementById('process').value;
             const comment = document.getElementById('comment').value;
             
-            if (!login || !process) {
-                showMessage('Veuillez remplir tous les champs obligatoires', 'error');
+            if (!login || !equipe || !process) {
+                showMessage('Veuillez remplir tous les champs obligatoires (Login, Équipe, Process)', 'error');
                 return;
             }
             
-            // Afficher le loader
             document.getElementById('loader').style.display = 'block';
-            showMessage('', ''); // Effacer les messages précédents
             
             const data = {
                 login: login,
+                equipe: equipe,
                 process: process,
                 comment: comment || ""
             };
             
             try {
-                console.log("Envoi à:", GOOGLE_SCRIPT_URL);
-                console.log("Données:", data);
-                
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',  // Re-mis en no-cors pour éviter les problèmes CORS
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data)
                 });
                 
-                // En mode no-cors, on ne peut pas lire la réponse
-                // On suppose que ça a marché si on arrive ici
                 showMessage('✅ Demande envoyée avec succès ! Merci.', 'success');
                 
-                // Réinitialiser le formulaire
+                // Réinitialiser seulement process et comment (garder login et equipe pour faciliter)
                 document.getElementById('process').value = '';
                 document.getElementById('comment').value = '';
                 
             } catch (error) {
-                console.error('Erreur détaillée:', error);
-                showMessage('❌ Erreur: ' + error.message, 'error');
+                console.error('Erreur:', error);
+                showMessage('❌ Erreur lors de l\'envoi. Réessaie plus tard.', 'error');
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
@@ -254,10 +268,6 @@
         
         function showMessage(msg, type) {
             const messageDiv = document.getElementById('message');
-            if (!msg) {
-                messageDiv.style.display = 'none';
-                return;
-            }
             messageDiv.textContent = msg;
             messageDiv.className = `message ${type}`;
             messageDiv.style.display = 'block';
