@@ -109,6 +109,12 @@
             border: 1px solid #f5c6cb;
         }
         
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
         .info {
             font-size: 12px;
             color: #666;
@@ -152,6 +158,21 @@
                 gap: 20px;
             }
         }
+        
+        .reset-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 11px;
+        }
+        
+        .reset-link a {
+            color: #999;
+            text-decoration: none;
+        }
+        
+        .reset-link a:active {
+            color: #FF9900;
+        }
     </style>
 </head>
 <body>
@@ -172,8 +193,12 @@
                     <label>🏷️ Équipe</label>
                     <select id="equipe" required>
                         <option value="">-- Choisissez --</option>
-                        <option value="Équipe O2">Équipe O2</option>
-                        <option value="Équipe I2">Équipe I2</option>
+                        <option value="Équipe A">Équipe A</option>
+                        <option value="Équipe B">Équipe B</option>
+                        <option value="Équipe C">Équipe C</option>
+                        <option value="Équipe D">Équipe D</option>
+                        <option value="Équipe Nuit">Équipe Nuit</option>
+                        <option value="Équipe Week-end">Équipe Week-end</option>
                     </select>
                 </div>
             </div>
@@ -181,7 +206,6 @@
             <div class="form-group">
                 <label>🎯 Process souhaité</label>
                 <select id="process" required>
-                    <option value="">-- Choisissez un process --</option>
                     <option value="Pack LTL">Pack LTL (Packing commande retour vendeur)</option>
                     <option value="Pack Donation">Pack Donation (Packing de la donation)</option>
                     <option value="Accompagnant">Accompagnant (Transfert des palettes du VRET vers la celulle A)</option>
@@ -209,10 +233,15 @@
         <div id="message" class="message"></div>
         <div id="loader" class="loader">⏳ Envoi en cours...</div>
         
+        <div class="reset-link">
+            <a href="#" id="resetLink">🔧 Problème ? Réinitialiser mes demandes</a>
+        </div>
+        
         <div class="info">
             <span class="badge">🔒 Données sécurisées</span>
             <span class="badge">📱 Scan & Go</span>
             <span class="badge">☁️ Envoi vers Google Sheets</span>
+            <span class="badge">🛡️ Anti-doublon actif</span>
         </div>
     </div>
 
@@ -220,21 +249,87 @@
         // ⚠️ REMPLACE PAR TON URL GOOGLE SCRIPT ⚠️
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCejVQFADGIC0uE2qNd73Qtp6_uuzFftXTLNKuvMozi_prjRa66NahKikZWKszrzM7/exec";
         
+        // Clé pour stocker les demandes dans localStorage (anti-doublon)
+        const STORAGE_KEY = "amazonTrainingRequests";
+        
+        // ========== FONCTIONS ANTI-DOUBLON ==========
+        
+        // Récupérer les demandes d'un utilisateur
+        function getUserRequests(login) {
+            let allRequests = localStorage.getItem(STORAGE_KEY);
+            allRequests = allRequests ? JSON.parse(allRequests) : [];
+            return allRequests.filter(r => r.login === login);
+        }
+        
+        // Vérifier si l'utilisateur a déjà demandé ce process
+        function hasAlreadyRequested(login, process) {
+            const userRequests = getUserRequests(login);
+            return userRequests.some(r => r.process === process);
+        }
+        
+        // Sauvegarder une nouvelle demande
+        function saveRequest(login, equipe, process, comment) {
+            let allRequests = localStorage.getItem(STORAGE_KEY);
+            allRequests = allRequests ? JSON.parse(allRequests) : [];
+            
+            allRequests.push({
+                login: login,
+                equipe: equipe,
+                process: process,
+                comment: comment,
+                timestamp: new Date().toISOString()
+            });
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(allRequests));
+        }
+        
+        // Réinitialiser les demandes d'un utilisateur
+        function resetUserRequests(login) {
+            let allRequests = localStorage.getItem(STORAGE_KEY);
+            allRequests = allRequests ? JSON.parse(allRequests) : [];
+            
+            const filteredRequests = allRequests.filter(r => r.login !== login);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredRequests));
+            
+            // Retourner le nombre de demandes supprimées
+            return allRequests.length - filteredRequests.length;
+        }
+        
+        // Afficher le compteur de demandes (optionnel)
+        function updateRequestCount(login) {
+            const userRequests = getUserRequests(login);
+            const count = userRequests.length;
+            
+            // Tu peux afficher ce compteur quelque part si tu veux
+            console.log(`${login} a fait ${count} demande(s)`);
+        }
+        
+        // ========== FORMULAIRE ==========
+        
         document.getElementById('formationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const login = document.getElementById('login').value.trim();
+            const login = document.getElementById('login').value.trim().toUpperCase();
             const equipe = document.getElementById('equipe').value;
             const process = document.getElementById('process').value;
             const comment = document.getElementById('comment').value;
             
+            // Vérification des champs obligatoires
             if (!login || !equipe || !process) {
-                showMessage('Veuillez remplir tous les champs obligatoires (Login, Équipe, Process)', 'error');
+                showMessage('Veuillez remplir tous les champs obligatoires', 'error');
                 return;
             }
             
+            // 🔴 VÉRIFICATION ANTI-DOUBLON 🔴
+            if (hasAlreadyRequested(login, process)) {
+                showMessage(`⚠️ ${login}, tu as déjà fait une demande pour le process "${process}". Tu ne peux pas faire deux fois la même demande.`, 'warning');
+                return;
+            }
+            
+            // Afficher le loader
             document.getElementById('loader').style.display = 'block';
             
+            // Préparer les données
             const data = {
                 login: login,
                 equipe: equipe,
@@ -243,28 +338,58 @@
             };
             
             try {
+                // Envoyer vers Google Sheets
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type':application/json',
                     },
                     body: JSON.stringify(data)
                 });
                 
-                showMessage('✅ Demande envoyée avec succès ! Merci.', 'success');
+                // Sauvegarder localement pour l'anti-doublon
+                saveRequest(login, equipe, process, comment);
                 
-                // Réinitialiser seulement process et comment (garder login et equipe pour faciliter)
+                showMessage(`✅ Demande envoyée avec succès ${login} ! Merci.`, 'success');
+                
+                // Réinitialiser seulement process et comment
                 document.getElementById('process').value = '';
                 document.getElementById('comment').value = '';
                 
+                // Mettre à jour l'affichage du compteur
+                updateRequestCount(login);
+                
             } catch (error) {
                 console.error('Erreur:', error);
-                showMessage('❌ Erreur lors de l\'envoi. Réessaie plus tard.', 'error');
+                showMessage('❌ Erreur lors de l\'envoi. Vérifie ta connexion Internet.', 'error');
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
         });
+        
+        // ========== RÉINITIALISATION ==========
+        
+        document.getElementById('resetLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const login = document.getElementById('login').value.trim().toUpperCase();
+            
+            if (!login) {
+                showMessage('Entre ton login dans le champ ci-dessus avant de réinitialiser', 'error');
+                return;
+            }
+            
+            const deletedCount = resetUserRequests(login);
+            
+            if (deletedCount > 0) {
+                showMessage(`🔧 ${login}, ${deletedCount} demande(s) supprimée(s). Tu peux maintenant refaire de nouvelles demandes.`, 'success');
+            } else {
+                showMessage(`ℹ️ ${login}, tu n'avais aucune demande enregistrée.`, 'info');
+            }
+        });
+        
+        // ========== MESSAGE ==========
         
         function showMessage(msg, type) {
             const messageDiv = document.getElementById('message');
@@ -272,10 +397,36 @@
             messageDiv.className = `message ${type}`;
             messageDiv.style.display = 'block';
             
+            // Ajouter un style spécial pour le warning
+            if (type === 'warning') {
+                messageDiv.style.borderLeft = '4px solid #856404';
+            }
+            
             setTimeout(() => {
                 messageDiv.style.display = 'none';
-            }, 5000);
+            }, 6000);
         }
+        
+        // Auto-nettoyage : supprimer les demandes de plus de 30 jours (optionnel)
+        function cleanOldRequests() {
+            let allRequests = localStorage.getItem(STORAGE_KEY);
+            allRequests = allRequests ? JSON.parse(allRequests) : [];
+            
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            const cleanedRequests = allRequests.filter(r => {
+                return new Date(r.timestamp) > thirtyDaysAgo;
+            });
+            
+            if (cleanedRequests.length !== allRequests.length) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanedRequests));
+                console.log(`Nettoyage auto : ${allRequests.length - cleanedRequests.length} anciennes demandes supprimées`);
+            }
+        }
+        
+        // Exécuter le nettoyage au chargement de la page
+        cleanOldRequests();
     </script>
 </body>
 </html>
