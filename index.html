@@ -63,6 +63,7 @@
             border-radius: 10px;
             font-size: 16px;
             font-family: inherit;
+            box-sizing: border-box;
         }
         
         select:focus, input:focus {
@@ -126,9 +127,93 @@
             margin: 5px;
         }
         
-        .login-id {
-            font-family: monospace;
+        /* Zone admin cachée */
+        .admin-zone {
+            display: none;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #FF9900;
+        }
+        
+        .admin-zone h2 {
+            color: #232F3E;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .admin-btn {
+            background: #232F3E;
+            color: white;
+            padding: 8px 15px;
             font-size: 14px;
+            width: auto;
+        }
+        
+        .admin-btn-danger {
+            background: #dc3545;
+        }
+        
+        .demande-item {
+            background: #f8f9fa;
+            border-left: 4px solid #FF9900;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .demande-login {
+            font-weight: bold;
+            color: #232F3E;
+        }
+        
+        .demande-process {
+            color: #FF9900;
+            font-weight: bold;
+        }
+        
+        .demande-date {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .demande-comment {
+            margin-top: 5px;
+            color: #555;
+            font-style: italic;
+        }
+        
+        .counter {
+            background: #FF9900;
+            color: #232F3E;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .login-panel {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .login-panel input {
+            width: 200px;
+            margin: 0 auto;
+            text-align: center;
         }
     </style>
 </head>
@@ -139,52 +224,166 @@
             <p>Amazon FC</p>
         </div>
         
-        <form id="formationForm">
-            <div class="form-group">
-                <label>👤 Votre LOGIN (identifiant Amazon)</label>
-                <input type="text" id="login" placeholder="Ex: JOHN.DOE" required autocomplete="off">
-            </div>
+        <!-- FORMULAIRE ASSOCIATE -->
+        <div id="associateView">
+            <form id="formationForm">
+                <div class="form-group">
+                    <label>👤 Votre LOGIN (identifiant Amazon)</label>
+                    <input type="text" id="login" placeholder="Ex: JOHN.DOE" required autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label>🎯 Process souhaité</label>
+                    <select id="process" required>
+                        <option value="">-- Choisissez un process --</option>
+                        <option value="Pick">Pick (Préparation de commandes)</option>
+                        <option value="Pack">Pack (Emballage)</option>
+                        <option value="Stow">Stow (Réception/Rangement)</option>
+                        <option value="Count">Count (Inventaire)</option>
+                        <option value="Problem Solve">Problem Solve</option>
+                        <option value="Water Spider">Water Spider</option>
+                        <option value="Ship Dock">Ship Dock (Expédition)</option>
+                        <option value="Receive">Receive (Réception)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>📝 Message supplémentaire (optionnel)</label>
+                    <input type="text" id="comment" placeholder="Précisions, disponibilités...">
+                </div>
+                
+                <button type="submit">📨 Envoyer ma demande</button>
+            </form>
             
-            <div class="form-group">
-                <label>🎯 Process souhaité</label>
-                <select id="process" required>
-                    <option value="">-- Choisissez un process --</option>
-                    <option value="Pick">Pick (Préparation de commandes)</option>
-                    <option value="Pack">Pack (Emballage)</option>
-                    <option value="Stow">Stow (Réception/Rangement)</option>
-                    <option value="Count">Count (Inventaire)</option>
-                    <option value="Problem Solve">Problem Solve</option>
-                    <option value="Water Spider">Water Spider</option>
-                    <option value="Ship Dock">Ship Dock (Expédition)</option>
-                    <option value="Receive">Receive (Réception)</option>
-                </select>
-            </div>
+            <div id="message" class="message"></div>
             
-            <div class="form-group">
-                <label>📝 Message supplémentaire (optionnel)</label>
-                <input type="text" id="comment" placeholder="Précisions, disponibilités...">
+            <div class="info">
+                <span class="badge">🔒 Données sécurisées</span>
+                <span class="badge">📱 Scan & Go</span>
+                <div style="margin-top: 10px;">
+                    <span class="badge" id="adminHint" style="cursor: pointer; background: #FF9900;">🔐 Accès responsable</span>
+                </div>
             </div>
-            
-            <button type="submit">📨 Envoyer ma demande</button>
-        </form>
+        </div>
         
-        <div id="message" class="message"></div>
+        <!-- ZONE ADMIN CACHÉE -->
+        <div id="adminView" class="admin-zone">
+            <h2>📋 Demandes de formation</h2>
+            <div class="admin-header">
+                <span class="counter" id="demandeCount">0 demande(s)</span>
+                <div>
+                    <button id="exportBtn" class="admin-btn">📤 Exporter JSON</button>
+                    <button id="clearBtn" class="admin-btn admin-btn-danger">🗑️ Tout effacer</button>
+                </div>
+            </div>
+            <div id="demandesList">
+                <p style="color: #999; text-align: center;">Aucune demande pour le moment</p>
+            </div>
+            <button id="backToForm" class="admin-btn" style="margin-top: 15px;">← Retour au formulaire</button>
+        </div>
         
-        <div class="info">
-            <span class="badge">🔒 Données sécurisées</span>
-            <span class="badge">📱 Scan & Go</span>
-            <div class="login-id" style="margin-top: 10px;">Version: Amazon Training Request v1.0</div>
+        <!-- PANNEA DE CONNEXION ADMIN -->
+        <div id="loginPanel" class="login-panel" style="display: none;">
+            <p style="margin-bottom: 10px;">🔐 Accès responsable formation</p>
+            <input type="password" id="adminPassword" placeholder="Code d'accès" style="width: 80%;">
+            <button id="loginBtn" style="margin-top: 10px; width: auto; padding: 8px 20px;">Valider</button>
+            <button id="cancelLoginBtn" style="margin-top: 10px; background: #999; width: auto; padding: 8px 20px;">Annuler</button>
         </div>
     </div>
 
     <script>
-        // Configuration - ADAPTER SELON VOTRE SITUATION
-        // Option 1: Envoyer par email (si accès email sur téléphone)
-        const TARGET_EMAIL = "formation@votre-site.amazon"; // À remplacer par l'email du responsable
+        // MOT DE PASSE ADMIN (change le ici)
+        const ADMIN_PASSWORD = "amazon2024";  // ⚠️ Change ce mot de passe !
         
-        // Option 2: Stockage local + export (si pas d'email)
-        // Option 3: Envoi vers Google Sheets (voir section plus bas)
+        // Clé pour le stockage local
+        const STORAGE_KEY = "amazonTrainingRequests";
         
+        // ========== FONCTIONS ==========
+        
+        function getDemandes() {
+            let demandes = localStorage.getItem(STORAGE_KEY);
+            return demandes ? JSON.parse(demandes) : [];
+        }
+        
+        function saveDemandes(demandes) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(demandes));
+        }
+        
+        function ajouterDemande(login, process, comment, timestamp) {
+            let demandes = getDemandes();
+            demandes.push({ login, process, comment, timestamp });
+            saveDemandes(demandes);
+        }
+        
+        function afficherDemandes() {
+            const demandes = getDemandes();
+            const container = document.getElementById('demandesList');
+            const countSpan = document.getElementById('demandeCount');
+            
+            countSpan.textContent = `${demandes.length} demande${demandes.length > 1 ? 's' : ''}`;
+            
+            if (demandes.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center;">Aucune demande pour le moment</p>';
+                return;
+            }
+            
+            // Afficher du plus récent au plus ancien
+            const demandesReversed = [...demandes].reverse();
+            
+            container.innerHTML = demandesReversed.map((d, index) => `
+                <div class="demande-item">
+                    <div><span class="demande-login">👤 ${escapeHtml(d.login)}</span> souhaite être formé sur <span class="demande-process">${escapeHtml(d.process)}</span></div>
+                    ${d.comment ? `<div class="demande-comment">💬 ${escapeHtml(d.comment)}</div>` : ''}
+                    <div class="demande-date">📅 ${escapeHtml(d.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Petit helper pour éviter les injections HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 4000);
+        }
+        
+        function showAdminView() {
+            document.getElementById('associateView').style.display = 'none';
+            document.getElementById('adminView').style.display = 'block';
+            document.getElementById('loginPanel').style.display = 'none';
+            afficherDemandes();
+        }
+        
+        function showAssociateView() {
+            document.getElementById('associateView').style.display = 'block';
+            document.getElementById('adminView').style.display = 'none';
+            document.getElementById('loginPanel').style.display = 'none';
+        }
+        
+        function showLoginPanel() {
+            document.getElementById('associateView').style.display = 'none';
+            document.getElementById('adminView').style.display = 'none';
+            document.getElementById('loginPanel').style.display = 'block';
+            document.getElementById('adminPassword').value = '';
+        }
+        
+        // ========== ÉVÉNEMENTS ==========
+        
+        // Soumission du formulaire
         document.getElementById('formationForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -198,72 +397,68 @@
                 return;
             }
             
-            // Construction du message
-            const demande = `📋 DEMANDE DE FORMATION AMAZON
-━━━━━━━━━━━━━━━━━━━━━
-👤 Associate: ${login}
-🎯 Process: ${process}
-📝 Commentaire: ${comment || "Aucun"}
-⏰ Date: ${timestamp}
-━━━━━━━━━━━━━━━━━━━━━`;
+            ajouterDemande(login, process, comment, timestamp);
             
-            // Sauvegarde locale (toujours)
-            sauvegarderLocalement(login, process, comment, timestamp);
+            showMessage('✅ Demande enregistrée ! Merci.', 'success');
             
-            // Tentative d'envoi par email (si possible)
-            envoyerParEmail(demande, login);
-            
-            // Option alternative: copier dans le presse-papier
-            copierDansPressePapier(demande);
-            
-            showMessage('✅ Demande enregistrée ! ' + 
-                       (isEmailAvailable() ? 'Email envoyé.' : 'Copiez le texte et transmettez à votre responsable.'), 
-                       'success');
-            
-            // Réinitialiser le formulaire (sauf login pour faciliter)
+            // Réinitialiser le formulaire
             document.getElementById('process').value = '';
             document.getElementById('comment').value = '';
+            // On garde le login pour faciliter les demandes suivantes
         });
         
-        function sauvegarderLocalement(login, process, comment, timestamp) {
-            let historique = localStorage.getItem('amazonTrainingRequests');
-            historique = historique ? JSON.parse(historique) : [];
-            historique.push({ login, process, comment, timestamp });
-            localStorage.setItem('amazonTrainingRequests', JSON.stringify(historique));
-        }
+        // Accès admin (clique sur le badge)
+        document.getElementById('adminHint').addEventListener('click', function() {
+            showLoginPanel();
+        });
         
-        function envoyerParEmail(demande, login) {
-            if (isEmailAvailable()) {
-                // Sur mobile, ça ouvre l'app mail
-                const subject = encodeURIComponent(`Demande formation - ${login}`);
-                const body = encodeURIComponent(demande);
-                window.location.href = `mailto:${TARGET_EMAIL}?subject=${subject}&body=${body}`;
+        // Connexion admin
+        document.getElementById('loginBtn').addEventListener('click', function() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                showAdminView();
+            } else {
+                alert('Code d\'accès incorrect');
+                document.getElementById('adminPassword').value = '';
             }
-        }
+        });
         
-        function copierDansPressePapier(texte) {
-            navigator.clipboard.writeText(texte).then(() => {
-                console.log('Texte copié');
-            }).catch(() => {
-                console.log('Impossible de copier');
-            });
-        }
+        // Annuler connexion
+        document.getElementById('cancelLoginBtn').addEventListener('click', function() {
+            showAssociateView();
+        });
         
-        function isEmailAvailable() {
-            // Vérifie si l'app mail est disponible (toujours vrai sur smartphone)
-            return true;
-        }
+        // Retour au formulaire depuis admin
+        document.getElementById('backToForm').addEventListener('click', function() {
+            showAssociateView();
+        });
         
-        function showMessage(msg, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = msg;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
+        // Exporter les demandes
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const demandes = getDemandes();
+            if (demandes.length === 0) {
+                alert('Aucune demande à exporter');
+                return;
+            }
             
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 4000);
-        }
+            const dataStr = JSON.stringify(demandes, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `demandes_formation_${new Date().toISOString().slice(0,19)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+        
+        // Tout effacer
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            if (confirm('⚠️ Attention ! Cette action supprime TOUTES les demandes. Es-tu sûr ?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                afficherDemandes();
+                showMessage('Toutes les demandes ont été supprimées', 'success');
+            }
+        });
     </script>
 </body>
 </html>
