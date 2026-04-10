@@ -127,93 +127,12 @@
             margin: 5px;
         }
         
-        /* Zone admin cachée */
-        .admin-zone {
+        .loader {
             display: none;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #FF9900;
-        }
-        
-        .admin-zone h2 {
-            color: #232F3E;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-        
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .admin-btn {
-            background: #232F3E;
-            color: white;
-            padding: 8px 15px;
+            text-align: center;
+            margin-top: 10px;
             font-size: 14px;
-            width: auto;
-        }
-        
-        .admin-btn-danger {
-            background: #dc3545;
-        }
-        
-        .demande-item {
-            background: #f8f9fa;
-            border-left: 4px solid #FF9900;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        
-        .demande-login {
-            font-weight: bold;
-            color: #232F3E;
-        }
-        
-        .demande-process {
             color: #FF9900;
-            font-weight: bold;
-        }
-        
-        .demande-date {
-            font-size: 11px;
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        .demande-comment {
-            margin-top: 5px;
-            color: #555;
-            font-style: italic;
-        }
-        
-        .counter {
-            background: #FF9900;
-            color: #232F3E;
-            border-radius: 20px;
-            padding: 5px 12px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .login-panel {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .login-panel input {
-            width: 200px;
-            margin: 0 auto;
-            text-align: center;
         }
     </style>
 </head>
@@ -224,131 +143,95 @@
             <p>Amazon FC</p>
         </div>
         
-        <!-- FORMULAIRE ASSOCIATE -->
-        <div id="associateView">
-            <form id="formationForm">
-                <div class="form-group">
-                    <label>👤 Votre LOGIN (identifiant Amazon)</label>
-                    <input type="text" id="login" placeholder="Ex: JOHN.DOE" required autocomplete="off">
-                </div>
-                
-                <div class="form-group">
-                    <label>🎯 Process souhaité</label>
-                    <select id="process" required>
-                        <option value="">-- Choisissez un process --</option>
-                        <option value="Pick">Pick (Préparation de commandes)</option>
-                        <option value="Pack">Pack (Emballage)</option>
-                        <option value="Stow">Stow (Réception/Rangement)</option>
-                        <option value="Count">Count (Inventaire)</option>
-                        <option value="Problem Solve">Problem Solve</option>
-                        <option value="Water Spider">Water Spider</option>
-                        <option value="Ship Dock">Ship Dock (Expédition)</option>
-                        <option value="Receive">Receive (Réception)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>📝 Message supplémentaire (optionnel)</label>
-                    <input type="text" id="comment" placeholder="Précisions, disponibilités...">
-                </div>
-                
-                <button type="submit">📨 Envoyer ma demande</button>
-            </form>
+        <form id="formationForm">
+            <div class="form-group">
+                <label>👤 Votre LOGIN (identifiant Amazon)</label>
+                <input type="text" id="login" placeholder="Ex: JOHN.DOE" required autocomplete="off">
+            </div>
             
-            <div id="message" class="message"></div>
+            <div class="form-group">
+                <label>🎯 Process souhaité</label>
+                <select id="process" required>
+                    <option value="">-- Choisissez un process --</option>
+                    <option value="Pick">Pick (Préparation de commandes)</option>
+                    <option value="Pack">Pack (Emballage)</option>
+                    <option value="Stow">Stow (Réception/Rangement)</option>
+                    <option value="Count">Count (Inventaire)</option>
+                    <option value="Problem Solve">Problem Solve</option>
+                    <option value="Water Spider">Water Spider</option>
+                    <option value="Ship Dock">Ship Dock (Expédition)</option>
+                    <option value="Receive">Receive (Réception)</option>
+                </select>
+            </div>
             
-            <div class="info">
-                <span class="badge">🔒 Données sécurisées</span>
-                <span class="badge">📱 Scan & Go</span>
-                <div style="margin-top: 10px;">
-                    <span class="badge" id="adminHint" style="cursor: pointer; background: #FF9900;">🔐 Accès responsable</span>
-                </div>
+            <div class="form-group">
+                <label>📝 Message supplémentaire (optionnel)</label>
+                <input type="text" id="comment" placeholder="Précisions, disponibilités...">
             </div>
-        </div>
+            
+            <button type="submit">📨 Envoyer ma demande</button>
+        </form>
         
-        <!-- ZONE ADMIN CACHÉE -->
-        <div id="adminView" class="admin-zone">
-            <h2>📋 Demandes de formation</h2>
-            <div class="admin-header">
-                <span class="counter" id="demandeCount">0 demande(s)</span>
-                <div>
-                    <button id="exportBtn" class="admin-btn">📤 Exporter JSON</button>
-                    <button id="clearBtn" class="admin-btn admin-btn-danger">🗑️ Tout effacer</button>
-                </div>
-            </div>
-            <div id="demandesList">
-                <p style="color: #999; text-align: center;">Aucune demande pour le moment</p>
-            </div>
-            <button id="backToForm" class="admin-btn" style="margin-top: 15px;">← Retour au formulaire</button>
-        </div>
+        <div id="message" class="message"></div>
+        <div id="loader" class="loader">⏳ Envoi en cours...</div>
         
-        <!-- PANNEA DE CONNEXION ADMIN -->
-        <div id="loginPanel" class="login-panel" style="display: none;">
-            <p style="margin-bottom: 10px;">🔐 Accès responsable formation</p>
-            <input type="password" id="adminPassword" placeholder="Code d'accès" style="width: 80%;">
-            <button id="loginBtn" style="margin-top: 10px; width: auto; padding: 8px 20px;">Valider</button>
-            <button id="cancelLoginBtn" style="margin-top: 10px; background: #999; width: auto; padding: 8px 20px;">Annuler</button>
+        <div class="info">
+            <span class="badge">🔒 Données sécurisées</span>
+            <span class="badge">📱 Scan & Go</span>
+            <span class="badge">☁️ Envoi vers Google Sheets</span>
         </div>
     </div>
 
     <script>
-        // MOT DE PASSE ADMIN (change le ici)
-        const ADMIN_PASSWORD = "amazon2024";  // ⚠️ Change ce mot de passe !
+        // ⚠️ REMPLACE CETTE URL PAR LA TIENNE ⚠️
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/TON_ID_ICI/exec";
         
-        // Clé pour le stockage local
-        const STORAGE_KEY = "amazonTrainingRequests";
-        
-        // ========== FONCTIONS ==========
-        
-        function getDemandes() {
-            let demandes = localStorage.getItem(STORAGE_KEY);
-            return demandes ? JSON.parse(demandes) : [];
-        }
-        
-        function saveDemandes(demandes) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(demandes));
-        }
-        
-        function ajouterDemande(login, process, comment, timestamp) {
-            let demandes = getDemandes();
-            demandes.push({ login, process, comment, timestamp });
-            saveDemandes(demandes);
-        }
-        
-        function afficherDemandes() {
-            const demandes = getDemandes();
-            const container = document.getElementById('demandesList');
-            const countSpan = document.getElementById('demandeCount');
+        document.getElementById('formationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            countSpan.textContent = `${demandes.length} demande${demandes.length > 1 ? 's' : ''}`;
+            const login = document.getElementById('login').value.trim();
+            const process = document.getElementById('process').value;
+            const comment = document.getElementById('comment').value;
             
-            if (demandes.length === 0) {
-                container.innerHTML = '<p style="color: #999; text-align: center;">Aucune demande pour le moment</p>';
+            if (!login || !process) {
+                showMessage('Veuillez remplir tous les champs obligatoires', 'error');
                 return;
             }
             
-            // Afficher du plus récent au plus ancien
-            const demandesReversed = [...demandes].reverse();
+            // Afficher le loader
+            document.getElementById('loader').style.display = 'block';
             
-            container.innerHTML = demandesReversed.map((d, index) => `
-                <div class="demande-item">
-                    <div><span class="demande-login">👤 ${escapeHtml(d.login)}</span> souhaite être formé sur <span class="demande-process">${escapeHtml(d.process)}</span></div>
-                    ${d.comment ? `<div class="demande-comment">💬 ${escapeHtml(d.comment)}</div>` : ''}
-                    <div class="demande-date">📅 ${escapeHtml(d.timestamp)}</div>
-                </div>
-            `).join('');
-        }
-        
-        // Petit helper pour éviter les injections HTML
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
+            // Préparer les données
+            const data = {
+                login: login,
+                process: process,
+                comment: comment || ""
+            };
+            
+            try {
+                // Envoyer vers Google Sheets
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                showMessage('✅ Demande envoyée avec succès ! Merci.', 'success');
+                
+                // Réinitialiser le formulaire
+                document.getElementById('process').value = '';
+                document.getElementById('comment').value = '';
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                showMessage('❌ Erreur lors de l\'envoi. Réessaie plus tard.', 'error');
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        });
         
         function showMessage(msg, type) {
             const messageDiv = document.getElementById('message');
@@ -360,105 +243,6 @@
                 messageDiv.style.display = 'none';
             }, 4000);
         }
-        
-        function showAdminView() {
-            document.getElementById('associateView').style.display = 'none';
-            document.getElementById('adminView').style.display = 'block';
-            document.getElementById('loginPanel').style.display = 'none';
-            afficherDemandes();
-        }
-        
-        function showAssociateView() {
-            document.getElementById('associateView').style.display = 'block';
-            document.getElementById('adminView').style.display = 'none';
-            document.getElementById('loginPanel').style.display = 'none';
-        }
-        
-        function showLoginPanel() {
-            document.getElementById('associateView').style.display = 'none';
-            document.getElementById('adminView').style.display = 'none';
-            document.getElementById('loginPanel').style.display = 'block';
-            document.getElementById('adminPassword').value = '';
-        }
-        
-        // ========== ÉVÉNEMENTS ==========
-        
-        // Soumission du formulaire
-        document.getElementById('formationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const login = document.getElementById('login').value.trim();
-            const process = document.getElementById('process').value;
-            const comment = document.getElementById('comment').value;
-            const timestamp = new Date().toLocaleString('fr-FR');
-            
-            if (!login || !process) {
-                showMessage('Veuillez remplir tous les champs obligatoires', 'error');
-                return;
-            }
-            
-            ajouterDemande(login, process, comment, timestamp);
-            
-            showMessage('✅ Demande enregistrée ! Merci.', 'success');
-            
-            // Réinitialiser le formulaire
-            document.getElementById('process').value = '';
-            document.getElementById('comment').value = '';
-            // On garde le login pour faciliter les demandes suivantes
-        });
-        
-        // Accès admin (clique sur le badge)
-        document.getElementById('adminHint').addEventListener('click', function() {
-            showLoginPanel();
-        });
-        
-        // Connexion admin
-        document.getElementById('loginBtn').addEventListener('click', function() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === ADMIN_PASSWORD) {
-                showAdminView();
-            } else {
-                alert('Code d\'accès incorrect');
-                document.getElementById('adminPassword').value = '';
-            }
-        });
-        
-        // Annuler connexion
-        document.getElementById('cancelLoginBtn').addEventListener('click', function() {
-            showAssociateView();
-        });
-        
-        // Retour au formulaire depuis admin
-        document.getElementById('backToForm').addEventListener('click', function() {
-            showAssociateView();
-        });
-        
-        // Exporter les demandes
-        document.getElementById('exportBtn').addEventListener('click', function() {
-            const demandes = getDemandes();
-            if (demandes.length === 0) {
-                alert('Aucune demande à exporter');
-                return;
-            }
-            
-            const dataStr = JSON.stringify(demandes, null, 2);
-            const blob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `demandes_formation_${new Date().toISOString().slice(0,19)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        });
-        
-        // Tout effacer
-        document.getElementById('clearBtn').addEventListener('click', function() {
-            if (confirm('⚠️ Attention ! Cette action supprime TOUTES les demandes. Es-tu sûr ?')) {
-                localStorage.removeItem(STORAGE_KEY);
-                afficherDemandes();
-                showMessage('Toutes les demandes ont été supprimées', 'success');
-            }
-        });
     </script>
 </body>
 </html>
