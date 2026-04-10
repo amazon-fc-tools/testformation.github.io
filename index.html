@@ -134,6 +134,14 @@
             font-size: 14px;
             color: #FF9900;
         }
+        
+        .debug-info {
+            font-size: 10px;
+            color: #999;
+            text-align: center;
+            margin-top: 10px;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -180,11 +188,15 @@
             <span class="badge">📱 Scan & Go</span>
             <span class="badge">☁️ Envoi vers Google Sheets</span>
         </div>
+        <div class="debug-info" id="debugInfo"></div>
     </div>
 
     <script>
         // ⚠️ REMPLACE CETTE URL PAR LA TIENNE ⚠️
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGjAdYFtTBv6FkdT_E86BIFl2oPZXpA1CUYqsBgxsXyPc9yebVZX5wKnhbOzCNGnmUxg/exec";
+        
+        // Afficher l'URL en debug (à enlever plus tard)
+        document.getElementById('debugInfo').innerHTML = `URL cible: ${GOOGLE_SCRIPT_URL.substring(0, 50)}...`;
         
         document.getElementById('formationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -200,8 +212,8 @@
             
             // Afficher le loader
             document.getElementById('loader').style.display = 'block';
+            showMessage('', ''); // Effacer les messages précédents
             
-            // Préparer les données
             const data = {
                 login: login,
                 process: process,
@@ -209,16 +221,20 @@
             };
             
             try {
-                // Envoyer vers Google Sheets
+                console.log("Envoi à:", GOOGLE_SCRIPT_URL);
+                console.log("Données:", data);
+                
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
+                    mode: 'no-cors',  // Re-mis en no-cors pour éviter les problèmes CORS
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data)
                 });
                 
+                // En mode no-cors, on ne peut pas lire la réponse
+                // On suppose que ça a marché si on arrive ici
                 showMessage('✅ Demande envoyée avec succès ! Merci.', 'success');
                 
                 // Réinitialiser le formulaire
@@ -226,8 +242,8 @@
                 document.getElementById('comment').value = '';
                 
             } catch (error) {
-                console.error('Erreur:', error);
-                showMessage('❌ Erreur lors de l\'envoi. Réessaie plus tard.', 'error');
+                console.error('Erreur détaillée:', error);
+                showMessage('❌ Erreur: ' + error.message, 'error');
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
@@ -235,13 +251,17 @@
         
         function showMessage(msg, type) {
             const messageDiv = document.getElementById('message');
+            if (!msg) {
+                messageDiv.style.display = 'none';
+                return;
+            }
             messageDiv.textContent = msg;
             messageDiv.className = `message ${type}`;
             messageDiv.style.display = 'block';
             
             setTimeout(() => {
                 messageDiv.style.display = 'none';
-            }, 4000);
+            }, 5000);
         }
     </script>
 </body>
