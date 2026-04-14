@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Demande de Formation - Amazon</title>
+    <title>Demande de Formation LIL1</title>
     <style>
         * {
             margin: 0;
@@ -64,7 +64,6 @@
             font-size: 16px;
             font-family: inherit;
             box-sizing: border-box;
-            transition: border-color 0.2s;
         }
         
         select:focus, input:focus {
@@ -93,8 +92,6 @@
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
-            transform: none;
-            opacity: 0.6;
         }
         
         .message {
@@ -161,36 +158,24 @@
             margin-bottom: 0;
         }
         
-        .checking {
-            font-size: 12px;
-            color: #FF9900;
-            margin-top: 5px;
-            display: none;
-            text-align: center;
-        }
-        
-        .checking.show {
-            display: block;
-        }
-        
-        .duplicate-field {
-            border-color: #856404 !important;
-            background-color: #fff3cd !important;
-        }
-        
         @media (max-width: 500px) {
             .row-2cols {
                 flex-direction: column;
                 gap: 20px;
             }
         }
+        
+        .duplicate-field {
+            border-color: #856404 !important;
+            background-color: #fff3cd !important;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">
-            <h1>📦 Demande de Formation au V-Return</h1>
-            <p>Amazon FC LIL1</p>
+            <h1>📦 Demande de Formation LIL1</h1>
+            <p>Amazon FC</p>
         </div>
         
         <form id="formationForm">
@@ -204,8 +189,15 @@
                     <label>🏷️ Équipe</label>
                     <select id="equipe" required>
                         <option value="">-- Choisissez --</option>
-                        <option value="Équipe O2">Équipe O2</option>
-                        <option value="Équipe I2">Équipe I2</option>
+                        <option value="O1">O1</option>
+                        <option value="O2">O2</option>
+                        <option value="O3">O3</option>
+                        <option value="I1">I1</option>
+                        <option value="I2">I2</option>
+                        <option value="I3">I3</option>
+                        <option value="SD">SD</option>
+                        <option value="VS">VS</option>
+                        <option value="APM">APM</option>
                     </select>
                 </div>
             </div>
@@ -214,31 +206,23 @@
                 <label>🎯 Process souhaité</label>
                 <select id="process" required>
                     <option value="">-- Choisissez un process --</option>
-                    <option value="Pack LTL">Pack LTL (Packing commande retour vendeur)</option>
-                    <option value="Pack Donation">Pack Donation (Packing de la donation)</option>
-                    <option value="Accompagnant">Accompagnant (Transfert des palettes du VRET vers la celulle A)</option>
-                    <option value="Recover">Recover (Traitement et dépotage des unités destinées à la destruction)</option>
-                    <option value="Damage Single">Damage Single (Packing commande single mais avec des articles endommagés)</option>
-                    <option value="Grading">Grading (évaluation des articles éligibles pour le warehouse deals)</option>
-                    <option value="Paletisation">Paletisation (Préparation des palettes pour le transport)</option>
-                    <option value="Solving VRET">Solving VRET (Résolution de problème, traitement de l'iol...)</option>
-                    <option value="Wrangle VRET">Wrangle VRET (Comme le wrangle au P2X avec quelques modifications)</option>
-                    <option value="RVR">RVR-Retourned Vendor Return (Comme la receive avec quelques modifications)</option>
-                    <option value="Chargeur VRET">Chargeur VRET (Chargement des camions pour le VRET)</option>
-                    <option value="Dispatch">Dispatch (Répartir les unités du grading dans des palettes, fermeture informatique des palettes)</option>
-                    <option value="POC HAZMAT">POC HAZMAT (Autonomie, responsable de la zone recover, apprentissage des différents type d'hazmat et comment les dépoter)</option>
+                    <option value="Pick">Pick</option>
+                    <option value="Pack">Pack</option>
+                    <option value="Stow">Stow</option>
+                    <option value="Receive">Receive</option>
+                    <option value="Shipping">Shipping</option>
+                    <option value="VRET">VRET</option>
                 </select>
             </div>
             
             <div class="form-group">
                 <label>📝 Message supplémentaire (optionnel)</label>
-                <input type="text" id="comment" placeholder="Précisions, Raison">
+                <input type="text" id="comment" placeholder="Précisions, raison...">
             </div>
             
             <button type="submit">📨 Envoyer ma demande</button>
         </form>
         
-        <div id="checkingStatus" class="checking">🔍 Vérification des doublons en cours...</div>
         <div id="message" class="message"></div>
         <div id="loader" class="loader">⏳ Envoi en cours...</div>
         
@@ -253,63 +237,8 @@
         // ⚠️ REMPLACE PAR TON URL GOOGLE SCRIPT ⚠️
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCejVQFADGIC0uE2qNd73Qtp6_uuzFftXTLNKuvMozi_prjRa66NahKikZWKszrzM7/exec";
         
-        let checkTimeout = null;
-        let isChecking = false;
         let currentCheckStatus = { login: "", process: "", isDuplicate: false };
         
-        // Fonction pour vérifier les doublons via doGet
-        async function checkDuplicate(login, process) {
-            if (!login || !process) return false;
-            
-            isChecking = true;
-            document.getElementById('checkingStatus').classList.add('show');
-            
-            try {
-                const url = `${GOOGLE_SCRIPT_URL}?login=${encodeURIComponent(login)}&process=${encodeURIComponent(process)}&t=${Date.now()}`;
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'no-cors' // no-cors car Google Script peut avoir des restrictions CORS
-                });
-                
-                // Avec mode 'no-cors', on ne peut pas lire la réponse facilement
-                // On va plutôt se fier à la réponse du POST pour la vérification
-                // Pour une vérification fiable, on utilisera la méthode POST avec action=check
-                
-                // Alternative : utiliser POST pour la vérification
-                const checkResponse = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'check',
-                        login: login,
-                        process: process
-                    })
-                });
-                
-                // Avec no-cors, on ne peut pas lire la réponse
-                // On retourne false et on laisse la vérification finale au submit
-                return false;
-                
-            } catch (error) {
-                console.error('Erreur vérification:', error);
-                return false;
-            } finally {
-                isChecking = false;
-                document.getElementById('checkingStatus').classList.remove('show');
-            }
-        }
-        
-        // Mettre à jour l'interface visuelle pour avertir d'un potentiel doublon
-        function updateDuplicateWarning() {
-            // Version simplifiée : on ne bloque pas à l'avance car avec no-cors on ne peut pas lire la réponse
-            // La vérification se fera uniquement à la soumission
-        }
-        
-        // Fonction pour nettoyer les highlights visuels
         function clearDuplicateHighlight() {
             const loginInput = document.getElementById('login');
             const processSelect = document.getElementById('process');
@@ -324,7 +253,6 @@
             processSelect.classList.add('duplicate-field');
         }
         
-        // Écouter les changements pour nettoyer le highlight
         document.getElementById('login').addEventListener('input', function() {
             clearDuplicateHighlight();
             const msgDiv = document.getElementById('message');
@@ -341,7 +269,6 @@
             }
         });
         
-        // Soumission du formulaire
         document.getElementById('formationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -351,7 +278,7 @@
             const comment = document.getElementById('comment').value;
             
             if (!login || !equipe || !process) {
-                showMessage('Veuillez remplir tous les champs obligatoires (Login, Équipe, Process)', 'error');
+                showMessage('Veuillez remplir tous les champs obligatoires', 'error');
                 return;
             }
             
@@ -367,7 +294,7 @@
             };
             
             try {
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
@@ -376,21 +303,13 @@
                     body: JSON.stringify(data)
                 });
                 
-                // Avec mode 'no-cors', on ne peut pas lire la réponse du serveur
-                // On suppose donc que tout va bien, mais on ajoute une vérification côté client
-                // Pour une solution plus fiable, il faudrait enlever 'no-cors' et configurer CORS dans Google Script
-                
-                // Alternative : on considère que l'envoi a réussi
-                // Le script Google refusera le doublon de son côté
                 showMessage('✅ Demande envoyée avec succès ! Merci.', 'success');
-                
-                // Réinitialiser seulement process et comment
                 document.getElementById('process').value = '';
                 document.getElementById('comment').value = '';
                 
             } catch (error) {
                 console.error('Erreur:', error);
-                showMessage('❌ Erreur lors de l\'envoi. Vérifiez votre connexion et réessayez.', 'error');
+                showMessage('❌ Erreur lors de l\'envoi. Vérifiez votre connexion.', 'error');
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
@@ -418,7 +337,7 @@
             }, 5000);
         }
         
-        console.log('✅ Formulaire prêt - La vérification des doublons se fait côté Google Sheets');
+        console.log('✅ Formulaire prêt - LIL1');
     </script>
 </body>
 </html>
